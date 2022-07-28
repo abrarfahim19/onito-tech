@@ -1,19 +1,36 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addReceipt, deleteReceipt } from "./ReceiptsSlice";
+import { v4 as uuidv4 } from "uuid";
+import { Link } from "react-router-dom";
 
 const ReceiptsView = () => {
-  function handleSubmit(event) {
-    event.preventDefault();
-    const date = event.target.date.value;
-    const amount = event.target.amount.value;
-    const method = event.target.method.value;
-    const remark = event.target.remark.value;
-    console.log(date, amount, method, remark);
-  }
+  const receipts = useSelector((state) => state.receiptReducer.receipts);
+  const dispatch = useDispatch();
+
+  const handleSubmit = (e) => {
+    dispatch(
+      addReceipt({
+        id: uuidv4(),
+        date: e.target.date.value,
+        amount: e.target.amount.value,
+        paymentMethod: e.target.paymentMethod.value,
+        remark: e.target.remark.value,
+      })
+    );
+    document.getElementById("add-form").reset();
+    e.preventDefault();
+  };
+
+  const handleDelete = (id) => {
+    dispatch(deleteReceipt(id));
+  };
+
   return (
     <div className="p-4    bg-slate-300 h-screen">
       <div className="m-auto md:w-8/12 bg-white rounded-xl p-3 pr-8">
         <h1 className="text-xl underline font-bold">Receipt Details</h1>
-        <form onSubmit={handleSubmit}>
+        <form id="add-form" onSubmit={handleSubmit}>
           <div className="flex my-3 ">
             <label className="font-semibold w-3/12 self-center">
               Date<span className="text-red-600">*</span>
@@ -49,10 +66,10 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <select
-                name="method"
+                name="paymentMethod"
                 class="select select-bordered w-full max-w-xs"
               >
-                <option value="cash" selected>
+                <option value="cash" defaultChecked>
                   Cash
                 </option>
                 <option value="card">Card</option>
@@ -87,16 +104,40 @@ const ReceiptsView = () => {
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Payment Method</th>
+                <th>Remark</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Cy Ganderton</td>
-                <td>Quality Control Specialist</td>
-                <td>Blue</td>
-                <td>Blue</td>
-              </tr>
+              {receipts &&
+                receipts.map((receipt) => {
+                  const { id, date, amount, paymentMethod, remark } = receipt;
+                  return (
+                    <tr key={id}>
+                      <td>{date}</td>
+                      <td>{amount}</td>
+                      <td>{paymentMethod}</td>
+                      <td>{remark}</td>
+                      <td>
+                        <Link
+                          to="/edit-receipt"
+                          state={{ id, amount, paymentMethod, remark, date }}
+                        >
+                          <button class="btn btn-ghost btn-xs">Edit</button>
+                        </Link>
+
+                        <button
+                          class="btn btn-ghost btn-xs"
+                          onClick={() => {
+                            handleDelete(id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
