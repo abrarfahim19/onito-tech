@@ -30,6 +30,7 @@ const ReceiptsView = () => {
         editReceipt({ id, date, amount, paymentMethod: paymentSelect, remark })
       );
       setData({});
+      setIsEdit(false);
       toast.success("Receipt Edited");
     } else {
       dispatch(
