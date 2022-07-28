@@ -1,23 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addReceipt, deleteReceipt } from "./ReceiptsSlice";
+import { addReceipt, deleteReceipt, editReceipt } from "./ReceiptsSlice";
 import { v4 as uuidv4 } from "uuid";
 import { Link } from "react-router-dom";
 
 const ReceiptsView = () => {
+  const [isEdit, setIsEdit] = useState(false);
+  const [data, setData] = useState({});
   const receipts = useSelector((state) => state.receiptReducer.receipts);
   const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
-    dispatch(
-      addReceipt({
-        id: uuidv4(),
-        date: e.target.date.value,
-        amount: e.target.amount.value,
-        paymentMethod: e.target.paymentMethod.value,
-        remark: e.target.remark.value,
-      })
-    );
+    const date = e.target.date.value;
+    const amount = e.target.amount.value;
+    const paymentMethod = e.target.method.value;
+    const remark = e.target.remark.value;
+    if (isEdit) {
+      dispatch(
+        editReceipt({ id: data?.id, date, amount, paymentMethod, remark })
+      );
+      setData({});
+    } else {
+      dispatch(
+        addReceipt({
+          id: uuidv4(),
+          date: e.target.date.value,
+          amount: e.target.amount.value,
+          paymentMethod: e.target.paymentMethod.value,
+          remark: e.target.remark.value,
+        })
+      );
+    }
     document.getElementById("add-form").reset();
     e.preventDefault();
   };
@@ -37,6 +50,7 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <input
+                defaultValue={"2012-21-12"}
                 required
                 type="date"
                 name="date"
@@ -51,6 +65,7 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <input
+                defaultValue={data?.amount}
                 required
                 type="number"
                 min={0}
@@ -66,6 +81,7 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <select
+                defaultValue={data?.paymentMethod}
                 name="paymentMethod"
                 class="select select-bordered w-full max-w-xs"
               >
@@ -80,6 +96,7 @@ const ReceiptsView = () => {
             <label className="font-semibold w-3/12 self-center">Remark</label>
             <div className="w-9/12">
               <input
+                defaultValue={data?.remark}
                 name="remark"
                 type="text"
                 placeholder="Enter remark"
@@ -101,6 +118,7 @@ const ReceiptsView = () => {
           <table class="table table-zebra w-full">
             <thead>
               <tr>
+                <th>S/N</th>
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Payment Method</th>
@@ -110,22 +128,25 @@ const ReceiptsView = () => {
             </thead>
             <tbody>
               {receipts &&
-                receipts.map((receipt) => {
+                receipts.map((receipt, index) => {
                   const { id, date, amount, paymentMethod, remark } = receipt;
                   return (
                     <tr key={id}>
+                      <td>{index + 1}</td>
                       <td>{date}</td>
                       <td>{amount}</td>
                       <td>{paymentMethod}</td>
                       <td>{remark}</td>
                       <td>
-                        <Link
-                          to="/edit-receipt"
-                          state={{ id, amount, paymentMethod, remark, date }}
+                        <button
+                          class="btn btn-ghost btn-xs"
+                          onClick={() => {
+                            setIsEdit(true);
+                            setData(receipt);
+                          }}
                         >
-                          <button class="btn btn-ghost btn-xs">Edit</button>
-                        </Link>
-
+                          Edit
+                        </button>
                         <button
                           class="btn btn-ghost btn-xs"
                           onClick={() => {
