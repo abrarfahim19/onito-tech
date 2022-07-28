@@ -2,24 +2,31 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addReceipt, deleteReceipt, editReceipt } from "./ReceiptsSlice";
 import { v4 as uuidv4 } from "uuid";
-import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ReceiptsView = () => {
   const [isEdit, setIsEdit] = useState(false);
+  const [paymentSelect, setPaymentSelect] = useState("");
   const [data, setData] = useState({});
   const receipts = useSelector((state) => state.receiptReducer.receipts);
   const dispatch = useDispatch();
 
+  function handleChange(e) {
+    setPaymentSelect(e.target.value);
+  }
+
   const handleSubmit = (e) => {
+    e.preventDefault();
     const date = e.target.date.value;
     const amount = e.target.amount.value;
-    const paymentMethod = e.target.method.value;
     const remark = e.target.remark.value;
     if (isEdit) {
+      const { id } = data;
       dispatch(
-        editReceipt({ id: data?.id, date, amount, paymentMethod, remark })
+        editReceipt({ id, date, amount, paymentMethod: paymentSelect, remark })
       );
       setData({});
+      toast.success("Receipt Edited");
     } else {
       dispatch(
         addReceipt({
@@ -30,13 +37,18 @@ const ReceiptsView = () => {
           remark: e.target.remark.value,
         })
       );
+      toast.success("Added a New Receipt");
     }
-    document.getElementById("add-form").reset();
-    e.preventDefault();
+    e.target.reset();
   };
 
   const handleDelete = (id) => {
-    dispatch(deleteReceipt(id));
+    if (!isEdit) {
+      dispatch(deleteReceipt(id));
+      toast.error("Deleted Receipt");
+    } else {
+      toast.info("Can't delete while editing");
+    }
   };
 
   return (
@@ -50,7 +62,7 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <input
-                defaultValue={"2012-21-12"}
+                defaultValue={data?.date}
                 required
                 type="date"
                 name="date"
@@ -81,11 +93,12 @@ const ReceiptsView = () => {
             </label>
             <div className="w-9/12">
               <select
-                defaultValue={data?.paymentMethod}
+                value={paymentSelect}
+                onChange={handleChange}
                 name="paymentMethod"
                 class="select select-bordered w-full max-w-xs"
               >
-                <option value="cash" defaultChecked>
+                <option defaultChecked value="cash">
                   Cash
                 </option>
                 <option value="card">Card</option>
@@ -143,6 +156,9 @@ const ReceiptsView = () => {
                           onClick={() => {
                             setIsEdit(true);
                             setData(receipt);
+                            console.log(receipt);
+                            setPaymentSelect(receipt?.paymentMethod);
+                            toast.warn("Caution while editing");
                           }}
                         >
                           Edit

@@ -5,14 +5,14 @@ const receiptInit = {
   receipts: [
     {
       id: uuidv4(),
-      date: "22-12-12",
+      date: "2022-12-20",
       amount: "1200",
       paymentMethod: "card",
       remark: "Male Patient",
     },
     {
       id: uuidv4(),
-      date: "23-12-12",
+      date: "2022-08-20",
       amount: "2000",
       paymentMethod: "cash",
       remark: "Female Patient",
